@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.ai.scoketdemo.MainActivity">
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="连接Socket" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/disconnect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="断开连接" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/sendHeart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="发送心跳" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="发送登陆请求" />
+
+    <android.support.v7.widget.AppCompatEditText
+        android:id="@+id/editText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="请输入要发送的内容"
+        android:maxLines="1" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/sendText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="发送上方文字到服务器" />
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/log"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="连接状态信息：" />
+
+</LinearLayout>
