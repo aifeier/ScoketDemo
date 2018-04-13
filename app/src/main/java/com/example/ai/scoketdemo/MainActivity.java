@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -175,7 +176,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             addToLog("Socket已连接");
             return;
         }
-        addToLog("开始连接Socket");
         new AsyncTask<String, Void, SocketState>() {
 
             @Override
@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // 已经链接成功
             return socketState;
         }
-
+        addToLog("开始连接Socket");
         try {
             socketState = SocketState.Connecting;
             socket = new Socket();
@@ -286,6 +286,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             addToLog(log);
                         } catch (IOException e) {
                             e.printStackTrace();
+                            if (e instanceof SocketException) {
+                                // 连接状态异常，断开重新连接
+                                addToLog("连接状态异常，断开重新连接");
+                                disConnect();
+                                connect();
+                            }
                         }
                 }
                 try {
