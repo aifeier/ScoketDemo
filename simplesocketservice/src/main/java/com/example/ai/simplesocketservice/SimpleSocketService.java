@@ -4,6 +4,7 @@ import java.io.Console;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,11 +20,14 @@ import java.util.concurrent.Executors;
 
 public class SimpleSocketService {
 
+
     static ExecutorService service = Executors.newFixedThreadPool(5);
 
     public static void main(String[] args) throws Exception {
-
+        //UTP Socket
+//        DatagramSocket udpSocket = new DatagramSocket(8887);
         try {
+            // TCP Socket
             ServerSocket serverSocket = new ServerSocket(8086);
             System.out.println("start Socket server");
             while (true) {
