@@ -25,11 +25,11 @@ public class SimpleSocketService {
 
         try {
             ServerSocket serverSocket = new ServerSocket(8086);
+            System.out.println("start Socket server");
             while (true) {
                 if (serverSocket.isClosed())
                     break;
                 Socket socket = serverSocket.accept();
-//                System.out.println("成功连接一个客户端: Port=" + socket.getPort());
                 service.execute(new SocketRunnable(socket));
                 try {
                     Thread.sleep(1);
@@ -40,6 +40,7 @@ public class SimpleSocketService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Socket server stopped");
     }
 
     private static class SocketRunnable implements Runnable {
@@ -59,7 +60,7 @@ public class SimpleSocketService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.println("成功连接一个客户端: Port=" + this.port);
+            System.out.println("成功连接一个客户端: HostAddress=" + socket.getInetAddress().getHostAddress() + "，Port=" + this.port);
         }
 
         @Override
@@ -89,9 +90,10 @@ public class SimpleSocketService {
                     buf = new byte[length];
                     System.arraycopy(temp, 0, buf, 0, length);
                     String getMsg = new String(buf, Charset.forName("UTF-8"));
-                    System.out.println("接收到来自客户端数据，内容为：" + getMsg);
-                    outputStream.write(("服务端成功接收到数据 " + System.currentTimeMillis() + "\n" + getMsg).getBytes());
-//                    outputStream.flush();
+                    System.out.println("-----------inputStream--------------\n接收到来自客户端数据，内容为：" + getMsg + "\n-----------end--------------");
+                    outputStream.write(("服务端成功接收到数据 " + System.currentTimeMillis() + "\n接收到的数据内容：" + getMsg).getBytes());
+                    outputStream.flush();
+                    System.out.println("-----------outputStream--------------\n成功返回数据给客户端 Port=" + this.port + "\n-----------end--------------");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

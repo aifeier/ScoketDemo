@@ -55,7 +55,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private EditText editText;
 
     private TextView log;
-    private Handler handler;
+    private Handler handler = new Handler() {
+        @Override
+        public void dispatchMessage(Message msg) {
+            if (null != msg) {
+                if (0 == msg.what)
+                    addLog((CharSequence) msg.obj);
+                else if (1 == msg.what) {
+                    checkAndStartSocket();
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +78,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         log.setMovementMethod(ScrollingMovementMethod.getInstance());
         findViewById(R.id.connect).setOnClickListener(this);
         findViewById(R.id.disconnect).setOnClickListener(this);
-        findViewById(R.id.sendHeart).setOnClickListener(this);
-        findViewById(R.id.send).setOnClickListener(this);
         findViewById(R.id.sendText).setOnClickListener(this);
 
     }
@@ -84,16 +93,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void addToLog(CharSequence msg) {
-        if (null == handler) {
-            handler = new Handler(getMainLooper()) {
-                @Override
-                public void dispatchMessage(Message msg) {
-                    if (null != msg) {
-                        addLog((CharSequence) msg.obj);
-                    }
-                }
-            };
-        }
         Message message = Message.obtain();
         message.what = 0;
         message.obj = msg;
@@ -110,31 +109,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.disconnect:
                 disConnect();
                 break;
-            case R.id.sendHeart:
-                //心跳，无数据返回
-                byte[] heart = {0, 0, 0, 18, 0, 0, 0, 1, 0, 0, 0, 113, 0, 0, 0, 0, 10, 10};
-                sendMessage(heart);
-                break;
-            case R.id.send:
-                /*发送数据*/
-                // 登陆，有数据返回
-                byte[] cmd = {0, 0, 0, -85, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0};
-                String data =
-                        "chenwf aipu 5 ui+ghXgIWmwy2aYCiE+CDw== 2 0 5.0.36 11\n" +
-                                "ibundleid:\n" +
-                                "optype:1\n" +
-                                "idevpush:\n" +
-                                "smscode:\n" +
-                                "userdevice:unknown\n" +
-                                "opdata:unknown\n" +
-                                "ipushid:18071adc032d706cf56\n" +
-                                "\n";
-                byte[] login = new byte[cmd.length + data.getBytes().length];
-                System.arraycopy(data.getBytes(), 0, login, cmd.length, data.getBytes().length);
-                System.arraycopy(cmd, 0, login, 0, cmd.length);
-
-                sendMessage(login);
-                break;
             case R.id.sendText:
                 sendMessage(getEditText().getBytes());
                 break;
@@ -143,7 +117,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void sendMessage(byte[] bytes) {
         outputMeg.add(bytes);
-        checkAndStartSocket();
+        handler.sendEmptyMessage(1);
+//        checkAndStartSocket();
     }
 
     // 拿到输入的内容
@@ -174,31 +149,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             outputExecutor.shutdownNow();
             outputExecutor = null;
         }
-        stopSocket();
+        stopSocket(true);
     }
 
-    private void stopSocket() {
+    private void stopSocket(boolean showNoConnect) {
         if (null != socket && socket.isConnected()) {
             try {
                 socket.close();
                 socket = null;
                 inputStream = null;
                 outputStream = null;
-                addLog("Socket连接已断开");
+                addToLog("Socket连接已断开");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
-            addLog("Socket没有连接");
+            if (showNoConnect)
+                addToLog("Socket没有连接");
         }
     }
 
     /*连接Socket*/
     private void connect() {
         if (null != socket && socket.isConnected()) {
-            addLog("Socket已连接");
+            addToLog("Socket已连接");
             return;
         }
+        addToLog("开始连接Socket");
         new AsyncTask<String, Void, SocketState>() {
 
             @Override
@@ -264,15 +241,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         int size = inputStream.read(tmp);
                         if (0 < size) {
                             buf = new byte[size];
-                            System.arraycopy(buf, 0, tmp, 0, size);
-                            String msg = "接收到的数据长度 " + size + "byte 内容：：\n" + new String(buf, Charset.forName("UTF-8"));
-                            Log.e("Socket input: ", msg);
+                            System.arraycopy(tmp, 0, buf, 0, size);
+                            String msg = "-----------inputStream--------------\n接收到的来自服务器的数据，长度 " + size + " byte 内容：\n" + new String(buf, Charset.forName("UTF-8")) + "\n-----------end--------------";
+                            Log.d("Socket input: ", msg);
+                            addToLog(msg);
                         }
-//                        addToLog(msg);
                         if (-1 == size) {
                             // 已经断开连接，需要重新连接、
                             addToLog("连接已断开，开始重新连接");
-                            stopSocket();
+                            stopSocket(false);
                             connect();
                         }
                     } catch (IOException e) {
@@ -304,9 +281,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             byte[] msg = outputMeg.poll();
                             outputStream.write(msg);
                             outputStream.flush();
-                            String log = "发送的数据：\n" + new String(msg, Charset.forName("UTF-8"));
-//                            addToLog(log);
-                            Log.e("Socket output", log);
+                            String log = "-----------outputStream--------------\n发送的数据：\n" + new String(msg, Charset.forName("UTF-8")) + "\n-----------end--------------";
+                            Log.d("Socket output", log);
+                            addToLog(log);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
