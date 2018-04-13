@@ -102,6 +102,12 @@ public class SimpleSocketService {
                     e.printStackTrace();
                 }
             }
+            if (null != socket)
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             System.out.println("客户端: Port=" + this.port + "已经断开连接");
         }
     }

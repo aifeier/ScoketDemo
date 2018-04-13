@@ -55,6 +55,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private EditText editText;
 
+    private boolean stopped;
+
     private TextView log;
     private Handler handler = new Handler() {
         @Override
@@ -108,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 connect();
                 break;
             case R.id.disconnect:
+                stopped = true;
                 disConnect();
                 break;
             case R.id.sendText:
@@ -133,6 +136,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /*检查Socket的状态，关闭的时候自动打开*/
     private void checkAndStartSocket() {
+        if(stopped){
+            addToLog("已经手动断开连接，请重新连接");
+            return;
+        }
         boolean state = null != socket && socket.isConnected();
         if (!state) {
             disConnect();
@@ -176,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             addToLog("Socket已连接");
             return;
         }
+        stopped = false;
         new AsyncTask<String, Void, SocketState>() {
 
             @Override
@@ -247,7 +255,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             addToLog(msg);
                         }
                         if (-1 == size) {
-                            // 已经断开连接，需要重新连接、
+                            // 已经断开连接，需要重新连接
+                            if(stopped){
+                                addToLog("已经手动断开连接，请重新连接");
+                                continue;
+                            }
                             addToLog("连接已断开，开始重新连接");
                             stopSocket(false);
                             connect();
